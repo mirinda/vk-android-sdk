@@ -147,7 +147,7 @@ public class VKServiceActivity extends Activity implements DialogInterface.OnDis
             VKSdk.customInitialize(this, 0, null);
         }
 
-		VKSdk.wakeUpSession(getApplicationContext());
+		VKSdk.wakeUpSession(getApplicationContext(), false);
 
 		switch (getType()) {
 			case Authorization:

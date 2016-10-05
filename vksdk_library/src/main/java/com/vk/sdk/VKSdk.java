@@ -208,7 +208,7 @@ public class VKSdk {
             sCurrentAppId = appId;
             sCurrentApiVersion = TextUtils.isEmpty(appVer) ? VKSdkVersion.DEFAULT_API_VERSION : appVer;
             sCurrentLoginState = LoginState.Unknown;
-            wakeUpSession(applicationContext);
+            wakeUpSession(applicationContext, false);
         }
 
         return vkSdk;
@@ -328,7 +328,7 @@ public class VKSdk {
                     validationRequest.repeat();
                 }
             } else {
-                trackVisitor(null);
+                trackVisitor(null, false);
             }
 
             if (callback != null) {
@@ -393,7 +393,18 @@ public class VKSdk {
      * @return true, if an access token exists and not expired
      */
     public static boolean wakeUpSession(@NonNull Context context) {
-        return wakeUpSession(context, null);
+        return wakeUpSession(context, null, false);
+    }
+
+    /**
+     * Checks if an access token exist and performs a try to use it again
+     *
+     * @param context An application context for store an access token
+     * @param shouldInterruptUi if true in worth case may be dialog with number confirmation or other dialog.
+     * @return true, if an access token exists and not expired
+     */
+    public static boolean wakeUpSession(@NonNull Context context, boolean shouldInterruptUi) {
+        return wakeUpSession(context, null, shouldInterruptUi);
     }
 
     /**
@@ -404,6 +415,18 @@ public class VKSdk {
      * @return true, if an access token exists and not expired
      */
     public static boolean wakeUpSession(@NonNull final Context context, final VKCallback<LoginState> loginStateCallback) {
+        return wakeUpSession(context, loginStateCallback, true);
+    }
+
+    /**
+     * Checks if an access token exist and performs a try to use it again
+     *
+     * @param context            An application context for store an access token
+     * @param loginStateCallback if callback specified, {@link VKCallback#onResult(Object)} method will be called after login state changed
+     * @param shouldInterruptUi if true in worth case may be dialog with number confirmation or other dialog.
+     * @return true, if an access token exists and not expired
+     */
+    public static boolean wakeUpSession(@NonNull final Context context, final VKCallback<LoginState> loginStateCallback, boolean shouldInterruptUi) {
         final Context appContext = context.getApplicationContext();
         VKUIHelper.setApplicationContext(appContext);
 
@@ -425,7 +448,7 @@ public class VKSdk {
                     }
                     updateLoginState(context, loginStateCallback);
                 }
-            });
+            }, shouldInterruptUi);
             return true;
         }
         updateLoginState(context, loginStateCallback);
@@ -479,9 +502,10 @@ public class VKSdk {
         return token != null && !token.isExpired();
     }
 
-    private static void trackVisitor(VKRequest.VKRequestListener l) {
+    private static void trackVisitor(VKRequest.VKRequestListener l, boolean shouldInterruptUi) {
         VKRequest r = new VKRequest("stats.trackVisitor");
         r.attempts = 0;
+        r.shouldInterruptUI = shouldInterruptUi;
         r.executeWithListener(l);
     }
 
